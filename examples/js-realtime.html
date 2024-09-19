@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supabase Realtime Channel Example</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <h1>Realtime Channel: aaa</h1>
+    <ul id="messages-list"></ul>
+
+    <form onsubmit="handleSubmit(event)">
+      <div class="mb-3">
+        <label for="msg" class="form-label">Отправка:</label>
+        <input type="text" id="msg" name="msg" class="form-control" placeholder="Введите сообщение">
+      </div>
+      <div class="mb-3">
+        <button type="submit" class="btn btn-primary">Отправить</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const supabaseUrl = 'http://SERVER_IP:8090';
+    const supabaseAnonKey = 'YOU_KEY';
+    const supabase_ = supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+    // Функция для добавления сообщения в список
+    function addMessageToList(message) {
+      const messagesList = document.getElementById('messages-list');
+      const messageItem = document.createElement('li');
+      messageItem.textContent = message;
+      messagesList.appendChild(messageItem);
+    }
+
+    // Подписываемся на канал "aaa"
+    const channel = supabase_.channel('aaa');
+
+    channel.on('broadcast', { event: 'message' }, (payload) => {
+      console.log('Message received:', payload);
+      addMessageToList(payload.payload.text);
+    });
+
+    channel.subscribe();
+
+    // Пример отправки сообщения в канал
+    async function sendMessage(text) {
+      const { error } = await supabase_
+        .channel('aaa')
+        .send({
+          type: 'broadcast',
+          event: 'message',
+          payload: { text }
+        });
+
+      if (error) {
+        console.error('Error sending message:', error);
+      }
+    }
+
+    // Обработчик отправки формы
+    function handleSubmit(event) {
+      event.preventDefault(); // Предотвращаем перезагрузку страницы
+      const input = document.getElementById('msg');
+      sendMessage(input.value);
+      input.value = ''; // Очищаем поле ввода после отправки
+    }
+
+  </script>
+</body>
+</html>

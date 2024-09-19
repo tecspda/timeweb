@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="utf-8" />
+  <title>Вставка данных в Supabase</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    .d-none {
+      display: none;
+    }
+    .messages {
+      font-family: 'Courier New', monospace;
+      color: green;
+    }
+    .red {
+      color: red;
+    }
+
+  </style>
+ </head>
+ <body>
+  <div class="container mt-5">
+    <h1>Пример вставки данных в таблицу <code>test-table</code></h1>
+    <form>
+      <div class="mb-3">
+        <label for="fio" class="form-label">ФИО:</label>
+        <input type="text" id="fio" name="fio" class="form-control" placeholder="Введите ФИО">
+      </div>
+      <div class="mb-3">
+        <label for="age" class="form-label">Возраст:</label>
+        <input type="number" id="age" name="age" class="form-control" placeholder="Введите возраст">
+      </div>
+      <div class="mb-3">
+        <button type="button" class="btn btn-primary" onclick="addData()">Добавить</button>
+      </div>
+    </form>
+    <div class="messages d-none mt-3"></div>
+  </div>
+
+  <script>
+    // const { createClient } = supabase;
+
+    const supabaseUrl = 'http://SERVER_IP:8090';
+    const supabaseAnonKey = 'YOU_KEY';
+    const supabase_ = supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+    async function addData() {
+      const fio = document.getElementById('fio').value;
+      const age = document.getElementById('age').value;
+      const msg = document.querySelector('.messages');
+
+      const { data1, error1 } = await supabase_
+        .from('test-table')
+        .select('fio');
+      console.log('111', data1, error1);
+
+      const { data, error } = await supabase_
+        .from('test-table')
+        .insert([
+          { fio: fio, age: age }
+        ]);
+
+      msg.classList.remove('d-none'); // Показываем div
+      if (error) {
+        console.error('Ошибка при вставке:', error);
+        msg.textContent = 'Ошибка при добавлении данных: ' + error.message;
+        msg.classList.add('red');
+      } else {
+        console.log('Данные успешно добавлены:', data);
+        msg.textContent = 'Данные успешно добавлены!';
+        msg.classList.remove('red');
+      }
+      setTimeout(() => { msg.classList.add('d-none') }, 3000)
+    }
+
+    const callFunction = async () => {
+      const response = await fetch(`${supabaseUrl}/functions/v1/hello`);
+      const data = await response.json();
+      console.log(data); // "Hello, John!"
+    };
+
+    callFunction();
+
+  </script>
+ </body>
+</html>
