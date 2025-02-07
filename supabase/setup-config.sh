@@ -9,33 +9,6 @@ show_progress() {
 
 #!/bin/bash
 
-validate_ip() {
-    # Проверка формата XXX.XXX.XXX.XXX
-    if ! [[ $1 =~ ^([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$ ]]; then
-        echo "Invalid IP"
-        exit 1
-    fi
-    
-    # Разбиваем IP на части и проверяем каждую
-    IFS='.' read -r -a quads <<< "$1"
-    
-    # Проверяем каждую часть
-    for quad in "${quads[@]}"; do
-        # Преобразуем строку в число, удаляя ведущие нули
-        num=$((10#$quad))
-        
-        # Проверяем условия:
-        # 1. Число должно быть между 0 и 255
-        # 2. Исходная строка не должна иметь ведущих нулей (кроме самого числа 0)
-        if ((num < 0 || num > 255)) || 
-           ([ "$quad" != "0" ] && [[ $quad =~ ^0[0-9] ]]); then
-            return 1
-        fi
-    done
-    
-    return 0
-}
-
 # Download setting files
 echo "Downloading setting files..."
 wget -q https://raw.githubusercontent.com/tecspda/timeweb/refs/heads/main/supabase/.env -O ./docker/.env
@@ -55,12 +28,6 @@ read -s -p "Enter DASHBOARD_PASSWORD: " INPUT_DASHBOARD_PASSWORD
 printf "\n"
 read -p "Enter your VPS IP (e.g., 111.222.333.444): " INPUT_IP_YOUR_VPS
 printf "\n"
-
-# Validate IP address format
-if ! validate_ip "$INPUT_IP_YOUR_VPS"; then
-    echo "Error: Invalid IP address format"
-    exit 1
-fi
 
 # Processing docker/.env file
 show_progress "Updating PostgreSQL password..."
