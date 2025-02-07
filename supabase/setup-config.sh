@@ -7,6 +7,34 @@ show_progress() {
     echo "➜ $1"
 }
 
+#!/bin/bash
+
+validate_ip() {
+    # Проверка формата XXX.XXX.XXX.XXX
+    if ! [[ $1 =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+        return 1
+    fi
+    
+    # Разбиваем IP на части и проверяем каждую
+    IFS='.' read -r -a quads <<< "$1"
+    
+    # Проверяем каждую часть
+    for quad in "${quads[@]}"; do
+        # Преобразуем строку в число, удаляя ведущие нули
+        num=$((10#$quad))
+        
+        # Проверяем условия:
+        # 1. Число должно быть между 0 и 255
+        # 2. Исходная строка не должна иметь ведущих нулей (кроме самого числа 0)
+        if ((num < 0 || num > 255)) || 
+           ([ "$quad" != "0" ] && [[ $quad =~ ^0[0-9] ]]); then
+            return 1
+        fi
+    done
+    
+    return 0
+}
+
 # Download setting files
 echo "Downloading setting files..."
 wget -q https://raw.githubusercontent.com/tecspda/timeweb/refs/heads/main/supabase/.env -O ./docker/.env
@@ -14,15 +42,21 @@ wget -q https://raw.githubusercontent.com/tecspda/timeweb/refs/heads/main/supaba
 
 # Collect input values
 echo "Please enter the following configuration values:"
-read -p "Enter JWT_SECRET: " INPUT_JWT_SECRET
-read -p "Enter ANON_KEY: " INPUT_ANON_KEY
-read -p "Enter SERVICE_ROLE_KEY: " INPUT_SERVICE_ROLE_KEY
-read -p "Enter POSTGRES_PASSWORD: " INPUT_POSTGRES_PASSWORD
-read -p "Enter DASHBOARD_PASSWORD: " INPUT_DASHBOARD_PASSWORD
+read -s -p "Enter JWT_SECRET: " INPUT_JWT_SECRET
+printf "\n"
+read -s -p "Enter ANON_KEY: " INPUT_ANON_KEY
+printf "\n"
+read -s -p "Enter SERVICE_ROLE_KEY: " INPUT_SERVICE_ROLE_KEY
+printf "\n"
+read -s -p "Enter POSTGRES_PASSWORD: " INPUT_POSTGRES_PASSWORD
+printf "\n"
+read -s -p "Enter DASHBOARD_PASSWORD: " INPUT_DASHBOARD_PASSWORD
+printf "\n"
 read -p "Enter your VPS IP (e.g., 111.222.333.444): " INPUT_IP_YOUR_VPS
+printf "\n"
 
 # Validate IP address format
-if ! [[ $INPUT_IP_YOUR_VPS =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+if ! validate_ip "$INPUT_IP_YOUR_VPS"; then
     echo "Error: Invalid IP address format"
     exit 1
 fi
@@ -41,7 +75,7 @@ show_progress "Updating JWT secret..."
 sed -i "s/SECRET_KEY_BASE=.*/SECRET_KEY_BASE=$INPUT_JWT_SECRET/" ./docker/.env
 
 show_progress "Updating site URLs..."
-sed -i "s/SITE_URL=.*/SITE_URL=http:\/\/$INPUT_IP_YOUR_VPS/" ./docker/.env
+sed -i "s/SITE_URL=.*/SITE_URL=http:\/\/$INPUT_IP_YOUR_VPS:3000/" ./docker/.env
 sed -i "s/API_EXTERNAL_URL=.*/API_EXTERNAL_URL=http:\/\/$INPUT_IP_YOUR_VPS:8000/" ./docker/.env
 sed -i "s/SUPABASE_PUBLIC_URL=.*/SUPABASE_PUBLIC_URL=http:\/\/$INPUT_IP_YOUR_VPS:8000/" ./docker/.env
 
