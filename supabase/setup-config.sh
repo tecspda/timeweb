@@ -22,7 +22,7 @@ read -p "Enter DASHBOARD_PASSWORD: " INPUT_DASHBOARD_PASSWORD
 read -p "Enter your VPS IP (e.g., 111.222.333.444): " INPUT_IP_YOUR_VPS
 
 # Validate IP address format
-if ! [[ $INPUT_IP_YOUR_VPS =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+if ! [[ $INPUT_IP_YOUR_VPS =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
     echo "Error: Invalid IP address format"
     exit 1
 fi
