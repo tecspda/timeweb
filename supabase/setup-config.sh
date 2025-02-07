@@ -7,6 +7,11 @@ show_progress() {
     echo "➜ $1"
 }
 
+# Download setting files
+echo "Downloading setting files..."
+wget https://raw.githubusercontent.com/tecspda/timeweb/refs/heads/main/supabase/.env -O ./docker/.env
+wget https://raw.githubusercontent.com/tecspda/timeweb/refs/heads/main/supabase/docker-compose.yml -O ./docker/docker-compose.yml
+
 # Collect input values
 echo "Please enter the following configuration values:"
 read -p "Enter JWT_SECRET: " INPUT_JWT_SECRET
